@@ -1,0 +1,5 @@
+LOINC,  display,    unitCode,   unit
+9279-1, Respiratory rate,  /min, breaths/minute
+8867-4, Heart rate, /min, beats/minute
+2708-6, Oxygen saturation, % , %
+

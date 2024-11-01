@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="setting.js"></script>
+    <script src="Cookie.js"></script> 
+    <script src="HTTP2024.js"></script> 
+    <script src="dateTime.js"></script> 
+     <title>Heart Rate Observation</title>
+
+</head>
+<body>
+   
+    <h1>Vital sign observation</h1>
+
+    <label for="patientId">Patient ID:</label>
+    <input type="text" id="patientId" placeholder="Enter patient ID"><br><br>
+
+    <label id="itemDsiplay" for="heartRate">Heart Rate (beats per minute):</label>
+    <input type="text" id="inputValue" placeholder="Enter  value"><br><br>
+
+
+    <button onclick="updateObservation()">Submit</button>
+
+    <h2>Observation JSON:</h2>
+    <div id="result"></div>
+
+</body>
+<script>
+    let patientId  =   getCookie("patientID");     
+    let patientNname = getCookie("patientName"); 
+      
+    let LOINC = getCookie("selectedLOINC"); 
+    let display = getCookie("selectedDisplay"); 
+    document.getElementById("itemDsiplay").innerHTML = display;
+    let unitCode = getCookie("selectedUnitCode"); 
+    let unit = getCookie("selectedUnit"); 
+
+    let theDate ="";
+    let vsValue ="";
+    document.getElementById("patientId").value = getCookie("patientID");
+        function updateObservation() {
+            // 取得輸入值
+          /*  var refPid = "Patient/" + document.getElementById("patientId").value;
+            var beatsPerMin = document.getElementById("heartRate").value;
+            var theDate = document.getElementById("date").value;  */
+
+            // 建立 JSON 物件
+            var JSONObj = {
+                "resourceType": "Observation",
+                "id": "ExampleAverageRestingHeartRate",
+                "status": "final",
+                "category" : [{
+                  "coding" : [{
+                       "system" : "http://terminology.hl7.org/CodeSystem/observation-category",
+                       "code" : "vital-signs",
+                       "display" : "Vital Signs"    }]  }],
+                "code": {
+                    "coding": [{
+                        "system": "http://loinc.org",
+                        "code": LOINC,
+                        "display": display
+                    }]
+                },
+                "subject": {
+                    "reference": "Patient/" + patientId 
+                },
+                "effectiveDateTime": theDate,
+                "valueQuantity": {
+                    "value": "", // vsValue,
+                    "unit": unit,
+                    "system": "http://unitsofmeasure.org",
+                    "code": unitCode
+                }
+            };
+    JSONObj.valueQuantity.value =  document.getElementById("inputValue").value;
+    // Display result
+    
+    //JSONObj.recordedDate =  getFormattedTime();
+    JSONObj.effectiveDateTime  =  getFormattedTime();
+    var jsonStr = JSON.stringify(JSONObj);
+    //  alert(jsonStr);
+    var apiURL;
+    apiURL = FHIRrootURL + "Observation";
+    sendHttpPost(apiURL, jsonStr, callBack);
+    }
+
+    function callBack(ret) {
+      //alert(  ret);
+      document.getElementById("result").innerHTML = "<pre>" + ret + "</pre>";
+     //      document.getElementById("TextArea2").value = ret;
+     }
+
+    </script>
+
+
+</html>

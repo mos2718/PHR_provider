@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vital Sign Radio Buttons</title>
+    <script src="Cookie.js"></script>
+    <script src="dateTime.js"></script> 
+</head>
+<body>
+    <h2>Vital Sign Options</h2>
+    <div id="radioButtonsContainer"></div>
+    <p id="selectedOutput">Selected: None</p>
+
+    <script>
+        const radioButtonsContainer = document.getElementById("radioButtonsContainer");
+        const selectedOutput = document.getElementById("selectedOutput");
+
+        // Function to parse CSV data
+        function parseCSV(csvData) {
+            const lines = csvData.trim().split("\n");
+            const headers = lines[0].split(",").map(header => header.trim());
+            const data = lines.slice(1).map(line => {
+                const values = line.split(",").map(value => value.trim());
+                return headers.reduce((obj, header, index) => {
+                    obj[header] = values[index];
+                    return obj;
+                }, {});
+            });
+            return data;
+        }
+
+        // Function to display selected radio button and assign values to variables
+        function displaySelection(event) {
+            const selectedLOINC = event.target.getAttribute("data-loinc");
+            const selectedDisplay = event.target.getAttribute("data-display");
+            const selectedUnitCode = event.target.getAttribute("data-unitCode");
+            const selectedUnit = event.target.getAttribute("data-unit");
+
+            // Assigning values to variables
+            let selectedItem = {
+                LOINC: selectedLOINC,
+                display: selectedDisplay,
+                unitCode: selectedUnitCode,
+                unit:  selectedUnit
+            };
+            setCookie("selectedLOINC", selectedItem.LOINC , 1);
+            setCookie("selectedDisplay",selectedItem.display, 1);
+            setCookie("selectedUnitCode",selectedItem.unitCode, 1);
+            setCookie("selectedUnit",selectedItem.unit, 1);
+            selectedOutput.textContent = `Selected: ${selectedItem.display} (LOINC: ${selectedItem.LOINC}, UnitCode: ${selectedItem.unitCode}, Unit: ${selectedItem.unit})`;
+        //alert(selectedItem.LOINC);
+        }
+
+        // Fetch CSV file and generate radio buttons
+        async function loadCSV() {
+            try {
+                const response = await fetch('vitalSignItems.csv');
+                const csvData = await response.text();
+                const data = parseCSV(csvData);
+                
+                // Generate radio buttons from CSV data
+                data.forEach(item => {
+                    if (item.LOINC) {  // Avoid empty rows
+                        // Create radio button
+                        const radioButton = document.createElement("input");
+                        radioButton.type = "radio";
+                        radioButton.name = "measurement";
+                        radioButton.value = item.display;
+                        radioButton.setAttribute("data-loinc", item.LOINC);
+                        radioButton.setAttribute("data-display", item.display);
+                        radioButton.setAttribute("data-unitCode", item.unitCode);
+                        radioButton.setAttribute("data-unit", item.unit);
+                        radioButton.addEventListener("change", displaySelection);
+
+                        // Create label for radio button
+                        const label = document.createElement("label");
+                        label.textContent = `${item.display} (${item.unitCode}, ${item.unit})`;
+                        label.htmlFor = item.LOINC;
+
+                        // Append radio button and label to container
+                        radioButtonsContainer.appendChild(radioButton);
+                        radioButtonsContainer.appendChild(label);
+                        radioButtonsContainer.appendChild(document.createElement("br"));
+                    }
+                });
+            } catch (error) {
+                console.error("Error loading CSV file:", error);
+            }
+        }
+
+        // Load CSV when the page loads
+        loadCSV();
+    </script>
+</body>
+</html>
